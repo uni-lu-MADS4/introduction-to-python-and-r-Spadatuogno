@@ -1,7 +1,7 @@
 ---
 title: "Getting started with R and Python"
 date: 2025-09-22
-author: "Your name"
+author: "Franco Catuogno"
 format: html
 embed-resources: true
 ---
@@ -17,7 +17,7 @@ embed-resources: true
  - Calculate `2 + 6 * 5 ^ 2`
  
 ```{r}
-# Write answer here
+2 + 6 * 5 ^ 2
 ```
 
 
@@ -32,9 +32,20 @@ Exponentiation
 
 
 ```{r}
-# Write answer here
+(2 + 6) * 5 ^ 2
+```
+```{r}
+(result <- 2 + 5)
 ```
  
+```{r}
+
+```
+ 
+ 
+```{python}
+(b := (a := 1) + 2)
+```
 
 ### How to exchange two variables?
 
@@ -46,13 +57,31 @@ b = 10
 ```
 
 ```{python}
-# Write answer here
+#option1
+c = a
+a = b
+b = c
+print(a)
+
+#option2
+b, a = a, b
+print(a,b)
+
+#option3
+
+b = b + a
+a = b - a
+b = b - a
+print(b)
+print(a)
+
 ```
 
 ### What is the output of the following code?
 
 ```{python}
-# Write answer here
+x = 7
+1 < x < 10 < x + 3 <= 13
 ```
 
 Explain in your words!
@@ -60,7 +89,7 @@ Explain in your words!
 ::: unilur-solution
 Python parses four expressions, 1 < x and x < 10 and 10 < x + 3 and x + 3 <= 13 [ ] True or [ ] False 
 :::
-
+In addition, the reson why the output is false is because of the third expression " 10 < x + 3 ", even if the other three our true. 
 
 ### Missing values
 
@@ -81,8 +110,18 @@ Consider `is.na()` to identify indeces of missing positions.
  * How large is error that you make when ignore missing values?
 
 ```{r}
-# Write answer here
+ages <- c(18,20,34,53,12,NA,NA,72,75,13)
+
+mean(ages, na.rm = TRUE)
+
+
+ages0 <- replace(ages,is.na(ages),0)
+
+mean(ages0, na.rm = TRUE)
+
+
 ```
+When replacing NA with "0" the average value is 3/4 of the average when ignoring NAs
 
 ### Create a data frame
 
@@ -94,17 +133,47 @@ Paul  | 16  | 57.0 |green  |   1
  John  |17   |65.3 | blue    | 2
 
 ```{r}
-# Write answer here
+
+data.frame(
+  name = c("Paul", "Mary", "Sara", "John"),
+  age = c(16, 16, 16, 17),
+  weight = c(57.0, 50.0, 52.6, 65.3),
+  eye = c("green", "blue", "black", "blue"),
+  group = c(1, 1, 2, 2)
+)
+
 ```
 
 Assign the data frame to a variable named `classroom`.
 
+```{r}
+classroom <- data.frame(
+  name = c("Paul", "Mary", "Sara", "John"),
+  age = c(16, 16, 16, 17),
+  weight = c(57.0, 50.0, 52.6, 65.3),
+  eye = c("green", "blue", "black", "blue"),
+  group = c(1, 1, 2, 2)
+)
+```
+
 Describe the type of variables in `classroom`.
+
+```{r}
+str(classroom)
+```
+
 
 Which data structure would you use in base Python?
 
 ```{python}
-# Write answer here
+classroom = {
+    'name': ['Paul', 'Mary', 'Sara', 'John'],
+    'age': [16, 16, 16, 17],
+    'weight': [57.0, 50.0, 52.6, 65.3],
+    'eye': ['green', 'blue', 'black', 'blue'],
+    'group': [1, 1, 2, 2]
+}
+
 ```
 
 
@@ -193,13 +262,30 @@ Using `mtcars` (R) and the provided dictionary (Python):
 - In R, calculate the average `mpg` for cars with `cyl == 6` using **vectorized** operations.
    
 ```{r}
-# Write answer here
+
+mean_mpg_cyl6 <- mean(mtcars$mpg[mtcars$cyl == 6])
+
+# mtcars$cyl == 6 shows a logical vector with "TRUE" for those observations with cyl = 6
+# mpg[mtcars$cyl == 6] gives the values of mpg that belongs to the observations with cyl = 6
+# mean(mtcars$mpg[mtcars$cyl == 6] calculates the mean of the previous one
+
 ```
 
 - In base Python, calculate the same quantity.
 
 ```{python}
-# Write answer here
+
+mpg_cyl6 = [mpg for mpg, cyl in zip(mtcars["mpg"], mtcars["cyl"]) if cyl == 6]
+
+#  Everything written between the square brackets is equivalent to "mtcars$mpg[mtcars$cyl == 6]" in base R.
+
+mean_mpg_cyl6 = sum(mpg_cyl6) / len(mpg_cyl6) if mpg_cyl6 else None
+
+# computing the mean seems to require writing the equation instead of applying a single funciton
+
+print(mean_mpg_cyl6)
+
+# unlike base R, language in python is more intuitive as functions follow a similar logic to to grammar in English, but code in R is shorter
 ```
 
 
@@ -208,13 +294,24 @@ Using `mtcars` (R) and the provided dictionary (Python):
 - In R, count the number of cars where `mpg > 20` and `hp <= 100` using vectorized logical operations.
 
 ```{r}
-# Write answer here
+sum(mtcars$mpg > 20 & mtcars$hp <= 100)
+
+# Te expressions mtcars$mpg > 20 and mtcars$hp <= 100 indicate the conditions and & is for the taking into account both conditions at the same time
+# sum is the function for counting all the observations that satisfy the conditions mentioned
+
 ```
 
 - In Python, perform the same operation.
 
 ```{python}
-# Write answer here
+
+count = sum(1 for m, h in zip(mtcars['mpg'], mtcars['hp']) if m > 20 and h <= 100)
+
+# zip(mpg, hp) is for pairing corresponding mpg and hp values.
+# sum(1 for ... if ...) counts how many pairs satisfy the condition.
+
+print(count)
+
 ```
 
 
@@ -225,14 +322,32 @@ Using `mtcars` (R) and the provided dictionary (Python):
 - In R, check the type of `mtcars$mpg` and coerce it to integer.
 
 ```{r}
-# Write answer here
+# Checking the type
+class(mtcars$mpg)
+typeof(mtcars$mpg)
+
+# Coercing to integer
+mtcars$mpg <- as.integer(mtcars$mpg)
+
+# Check again
+class(mtcars$mpg)
+typeof(mtcars$mpg)
+
 ```
 
 - In Python, check the type of `mtcars['mpg']` and coerce it to a list of integers.
 
  
 ```{python}
-# Write answer here
+# Checking type of the first element (assuming all are same type)
+print(type(mtcars['mpg'][0]))
+
+# Coercing all mpg values to int (truncating decimals)
+mtcars['mpg'] = [int(m) for m in mtcars['mpg']]
+
+# Check type again
+print(type(mtcars['mpg'][0]))
+
 ```
 
 
@@ -240,13 +355,35 @@ Using `mtcars` (R) and the provided dictionary (Python):
 - In R, subset `mtcars` to select rows where `gear == 4` and columns `mpg`, and `hp`.
 
 ```{r}
-# Write answer here
+subset_mtcars <- mtcars[mtcars$gear == 4, c("mpg", "hp")]
+
+# mtcars$gear == 4 creates a logical vector for filtering rows with gear = 4.
+# hp and mpg columns are selected by c("mpg", "hp") 
+
+print(subset_mtcars)
+
 ```
 
 - In Python, perform the same operation using explicit iteration.
 
 ```{python}
-# Write answer here
+
+# Prepare lists to hold subsetted values
+subset_mpg = []
+subset_hp = []
+
+# Iterate over indices and select rows where gear == 4
+for i in range(len(mtcars['gear'])):
+    if mtcars['gear'][i] == 4:
+        subset_mpg.append(mtcars['mpg'][i])
+        subset_hp.append(mtcars['hp'][i])
+
+# To show the result as list of dicts (rows):
+subset_rows = [{'mpg': m, 'hp': h} for m, h in zip(subset_mpg, subset_hp)]
+print(subset_rows)
+
+# Again R version of the code is much shorter
+
 ```
 
 
@@ -257,12 +394,25 @@ Using `mtcars` (R) and the provided dictionary (Python):
 - In R, load the `tidyverse` package and use `dplyr::filter()` to select cars with `am == 1` (manual transmission).
 
 ```{r}
-# Write answer here
+library(tidyverse)
+
+mtcars |> 
+  dplyr::filter(am == 1)
 ```
 
 - In Python, import the `statistics` module and calculate the mean `mpg` for cars with `am == 1`.
 ```{python}
-# Write answer here
+import statistics
+
+# Extract mpg values where am == 1
+mpg_manual = [mpg for mpg, am in zip(mtcars['mpg'], mtcars['am']) if am == 1]
+
+# Calculate mean mpg for manual transmission cars
+mean_mpg_manual = statistics.mean(mpg_manual)
+
+print(mean_mpg_manual)
+
+# the use of the package statistics offers a function for calculating the mean which wasn't available on base Python, unlike base R
 ```
 
 
