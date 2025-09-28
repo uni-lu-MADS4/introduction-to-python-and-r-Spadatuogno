@@ -1,0 +1,300 @@
+---
+title: "DatasauRus"
+date: 2025-09-15
+author: "Franco Catuogno"
+format: html
+embed-resources: true
+---
+
+```{r}
+#| include: false
+library(tidyverse)
+```
+
+
+:::: {.columns}
+::: {.column width="65%"}
+::: {.callout-note}
+### Aims
+This guided practical will demonstrate that the **tidyverse** allows to compute summary statistics and visualize datasets efficiently.
+:::
+
+:::
+
+::: {.column width="10%"}
+
+
+:::
+::: {.column width="15%"}
+![](https://jumpingrivers.github.io/datasauRus/logo.png)
+
+:::
+::::
+
+## `datasauRus` package
+
+Check if you have the package `datasauRus` installed and load it.
+
+```{r}
+install.packages("datasauRus")
+library(datasauRus)
+```
+
+- should return nothing. 
+
+If `there is no package called ‘datasauRus’` appears, it means that the package needs 
+to be installed. Use this:
+
+```{r}
+
+```
+
+
+
+## Explore the dataset
+
+Since we are dealing with a `tibble`, we can type
+
+```{r}
+head(datasaurus_dozen,10)
+```
+
+Only the first **10** rows are displayed.
+
+
+### What are the dimensions of this dataset? Rows and columns?
+
+- **base** version, using either `dim()`, `ncol()` and `nrow()`
+
+```{r}
+dim(datasaurus_dozen)
+ncol(datasaurus_dozen)
+nrow(datasaurus_dozen)
+
+```
+
+
+
+- **tidyverse** version
+
+```{r}
+# Nothing to be done, a `tibble` display its dimensions, starting by a comment ('#' character)
+```
+
+
+### Assign the `datasaurus_dozen` to the `ds_dozen` name. This aims at populating the **Global Environment**
+
+```{r}
+ds_dozen <- datasaurus_dozen
+```
+
+
+
+
+## How many datasets are present?
+
+
+```{r}
+ds_dozen |> 
+  distinct(dataset)
+
+# There are 13 datasets
+```
+
+
+- Even better, compute and display the number of lines per `dataset`
+
+::: {.callout-tip icon="false"}
+### Tip
+
+The function `count` in `dplyr` does the `group_by()` by the specified column + `summarise(n = n())` which returns the number of observation per defined group.
+:::
+
+```{r}
+library(dplyr)
+ds_dozen |> 
+  group_by(dataset) |> 
+  summarize(n = n())
+
+# Same as before, there are 13 datasets
+```
+
+
+
+## Check summary statistics per dataset
+
+### Compute the mean of the `x` & `y` column. For this, you need to `group_by()` the appropriate column and then `summarise()`
+
+::: {.callout-tip icon="false"}
+### Tip
+
+In `summarise()` you can define as many new columns as you wish. No need to call it for every single variable.
+:::
+
+```{r}
+ds_dozen |> 
+  group_by(dataset) |> 
+  summarise(meanx = mean(x),
+            meany = mean(y))
+# I'm not sure if it is correct to have the same median of x and y for all the groups
+
+```
+
+
+### Compute both mean and standard deviation (sd) in one go using `across()` 
+
+
+```{r}
+ds_dozen |> 
+  group_by(dataset) |> 
+  summarise(across(c(x, y), list(mean = mean, sd = sd), na.rm = TRUE))
+
+```
+
+
+Alternative of `across()` using [pivoting](https://tidyr.tidyverse.org/articles/pivot.html):
+
+```{r}
+library(tidyr)
+
+ds_dozen |> 
+  pivot_longer(cols = c(x, y), 
+               names_to = "variable", 
+               values_to = "value") |> 
+  group_by(dataset, variable) |> 
+  summarise(
+    mean = mean(value),
+    sd = sd(value),
+    .groups = "drop"
+  ) |> 
+  pivot_wider(names_from = variable, values_from = c(mean, sd))
+
+```
+
+
+
+### Compute the Pearson correlation between x and y per dataset?
+
+```{r}
+
+ds_dozen |> 
+  group_by(dataset) |> 
+  summarise(cor(x,y))
+
+```
+
+
+
+
+### Perform a linear model of y explained by x per dataset
+
+Correlation is easy enough as it returns a double and takes vectors as input.
+For linear model, the R syntax `lm(y ~ x, data = dino)` makes it more complex to perform.
+
+One elegant solution is to use [functional programming](https://purrr.tidyverse.org/reference/index.html) and [nesting](https://tidyr.tidyverse.org/articles/nest.html).
+Combination with [`broom`](https://broom.tidymodels.org/) allows nice conversion of list  model output to rectangle `tibbles`.
+
+```{r}
+library(purrr)
+library(broom)
+
+
+
+models <- ds_dozen |> 
+  group_by(dataset) |> 
+  nest() |> 
+  mutate(
+    model = map(data, ~ lm(y ~ x, data = .x)),
+    tidied = map(model, tidy)
+  ) |> 
+  unnest(tidied)
+
+```
+
+
+
+
+### What can you conclude?
+
+All mean, standard deviations and correlations are the same for the 13 datasets.
+At least R^2 differ slightly.
+
+
+
+## Plot the _datasauRus_
+
+### Plot the `ds_dozen` with `ggplot` such the **aesthetics** are `aes(x = x, y = y)` 
+with the **geometry** `geom_point()`
+
+::: {.callout-tip icon="false"}
+### Tip
+The `ggplot()` and `geom_point()` functions must be linked with a **+** sign
+:::
+
+```{r}
+library(ggplot2)
+
+ds_dozen |> 
+  ggplot(aes(x = x, y = y)) +
+  geom_point()
+```
+
+
+### Reuse the above command, and now colored by the `dataset` column
+
+```{r}
+ds_dozen |> 
+  ggplot(aes(x = x, y = y, color = dataset)) +
+  geom_point()
+```
+
+
+
+### Plot one `dataset` per **facet**
+
+```{r}
+ds_dozen |>
+  ggplot(aes(x = x, y = y, colour = dataset)) +
+  geom_point() +
+  facet_wrap(vars(dataset))
+```
+
+
+### Tweak the theme and use the `theme_void()` and remove the legend
+
+```{r}
+ggplot(ds_dozen) +
+  aes(x = x, y = y, color = dataset) +
+  geom_point()+
+  facet_wrap(vars(dataset)) +
+  theme_void() +
+  theme(legend.position = "none")
+```
+
+
+### Are the datasets actually that similar?
+
+Not at all
+
+## Animation
+
+Plots can be animated, see for example what can be done with [`gganimate`](https://gganimate.com/).
+Instead of panels, **states** are made across `datasets` and **transitions** smoothed with an afterglow effect.
+
+![](https://i.imgur.com/51GcnEp.png)
+
+
+## Conclusion
+
+Mean and sd might be similar, but when plotting the data it's clear that the date behave different. So it is important to always visualize data with plots.
+
+### Acknowledgement
+
+- Alberto Cairo, (creator)
+- Justin Matejka
+- George Fitzmaurice
+- Lucy McGowan
+
+From this [post](https://itsalocke.com/datasaurus-now-cran/)
+
+- Aurélien Ginolhac (creator for rworkshop)
